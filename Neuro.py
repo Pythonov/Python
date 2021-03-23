@@ -1,23 +1,27 @@
-
+# -*- coding: utf-8 -*-
 """
+Created on Wed Mar 10 17:30:28 2021
+
 @author: Pimonov EI
 """
 
 #архитектура сети
 
 import os
-from keras import layers,models,optimizers
-
+from keras import layers
+from keras import models
+from keras import optimizers
 
 model = models.Sequential()
-model.add(layers.Conv2D(32,(3,3),activation='relu',input_shape=(150,150,3))) #150,150
+model.add(layers.Conv2D(32,(3,3),activation='relu',input_shape=(150,150,3)))
 
 model.add(layers.MaxPool2D((2,2)))
 model.add(layers.Conv2D(64, (3,3), activation='relu'))
 model.add(layers.MaxPool2D((2,2)))
 model.add(layers.Conv2D(128, (3,3), activation='relu'))
 model.add(layers.MaxPool2D((2,2)))
-model.add(layers.Conv2D(256, (3,3), activation='relu'))
+model.add(layers.Conv2D(128, (3,3), activation='relu'))
+model.add(layers.Conv2D(128, (3,3), activation='relu'))
 model.add(layers.MaxPool2D((2,2)))
 model.add(layers.Flatten())
 model.add(layers.Dropout(0.5))  #слой прореживания
@@ -30,10 +34,10 @@ model.summary()  #вывод архитектуры построенной се�
 #Компиляция
 
 model.compile(loss = 'binary_crossentropy', #функция потерь
-              optimizer=optimizers.RMSprop(lr=1e-3), #функция оптимизатора
+              optimizer=optimizers.RMSprop(lr=1e-4), #функция оптимизатора
               metrics=['acc'])
 
-base_dir = 'C:\code\X-RAY'
+base_dir = 'C:\code\svertok\cats_and_dogs_small'
 train_dir = os.path.join(base_dir, 'train')
 validation_dir = os.path.join(base_dir, 'validation')
 
@@ -53,14 +57,14 @@ test_datagen = ImageDataGenerator(rescale=1./255)
 
 train_generator = train_datagen.flow_from_directory(
     train_dir,
-    target_size=(150,150), #150,150
-    batch_size=64,
+    target_size=(150,150),
+    batch_size=20,
     class_mode = 'binary')
 
 validation_generator = test_datagen.flow_from_directory(
     validation_dir,
-    target_size=(150,150), #150,150
-    batch_size=16,
+    target_size=(150,150),
+    batch_size=20,
     class_mode='binary')
 
 for data_batch, labels_batch in train_generator:
@@ -73,45 +77,36 @@ for data_batch, labels_batch in train_generator:
 #обучение модели с использованием генератора пакетов
 history = model.fit_generator(
     train_generator,
-    steps_per_epoch=41,
-    epochs=30, #(35 for 200,200  40 for 150,150)
+    steps_per_epoch=75,
+    epochs=100, #(30)
     validation_data = validation_generator,
-    validation_steps = 8)
+    validation_steps = 9)
 
-#сохранение файла модели
-model.save('Rentgen11.h5')
+model.save('cata-and_dogs_small_3.h5')
+
+
 
 
 #построение графиков точности и потерь
 import matplotlib.pyplot as plt
-
-
-def smoothie (points,strength=0.8): #Сглаживание графиков
-    smoothie_points = []
-    for point in points:
-        if smoothie_points:
-            previous = smoothie_points[-1]
-            smoothie_points.append(previous*strength+point*(1-strength))
-        else:
-            smoothie_points.append(point)
-    return smoothie_points
-
 
 acc = history.history['acc']
 val_acc = history.history['val_acc']
 loss = history.history['loss']
 val_loss = history.history['val_loss']
 epochs = range(1, len(acc) + 1)
-
-
-plt.plot(epochs, smoothie(acc), 'bo', label='Training acc')
-plt.plot(epochs, smoothie(val_acc), 'b', label='Validation acc')
-plt.title('X-Ray Training and validation accuracy')
+plt.plot(epochs, acc, 'bo', label='Training acc')
+plt.plot(epochs, val_acc, 'b', label='Validation acc')
+plt.title('Training and validation accuracy')
 plt.legend()
 plt.figure()
-plt.plot(epochs, smoothie(loss), 'bo', label='Training loss')
-plt.plot(epochs, smoothie(val_loss), 'b', label='Validation loss')
-plt.title('X-Ray Training and validation loss')
+plt.plot(epochs, loss, 'bo', label='Training loss')
+plt.plot(epochs, val_loss, 'b', label='Validation loss')
+plt.title('Training and validation loss')
 plt.legend()
 plt.show()
+
+
+
+
 
