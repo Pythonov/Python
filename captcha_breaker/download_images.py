@@ -6,7 +6,7 @@ import os
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-o", "--output", required=True,
-                help="path to output der. of img.")
+                help="path to output dir. of img.")
 ap.add_argument("-n", "--num_images", type=int,
                 default=500, help="# of img. to download")
 args = vars(ap.parse_args())
